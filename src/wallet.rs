@@ -52,6 +52,10 @@ lazy_static! {
         let code = include_str!("../resources/wallet/wallet_v4r2.code");
         BagOfCells::parse_base64(code).unwrap()
     };
+    pub static ref WALLET_W5_CODE: BagOfCells = {
+        let code = include_str!("../resources/wallet/wallet_w5.code");
+        BagOfCells::parse_base64(code).unwrap()
+    };
     pub static ref HIGHLOAD_V1R1_CODE: BagOfCells = {
         let code = include_str!("../resources/wallet/highload_v1r1.code");
         BagOfCells::parse_base64(code).unwrap()
@@ -85,6 +89,7 @@ pub enum WalletVersion {
     V3R2,
     V4R1,
     V4R2,
+    W5,
     HighloadV1R1,
     HighloadV1R2,
     HighloadV2,
@@ -104,6 +109,7 @@ impl WalletVersion {
             WalletVersion::V3R2 => &WALLET_V3R2_CODE,
             WalletVersion::V4R1 => &WALLET_V4R1_CODE,
             WalletVersion::V4R2 => &WALLET_V4R2_CODE,
+            WalletVersion::W5 => &WALLET_W5_CODE,
             WalletVersion::HighloadV1R1 => &HIGHLOAD_V1R1_CODE,
             WalletVersion::HighloadV1R2 => &HIGHLOAD_V1R2_CODE,
             WalletVersion::HighloadV2 => &HIGHLOAD_V2_CODE,
@@ -141,6 +147,13 @@ impl WalletVersion {
             }
             .try_into()?,
             WalletVersion::V4R1 | WalletVersion::V4R2 => WalletDataV4 {
+                seqno: 0,
+                wallet_id,
+                public_key,
+            }
+            .try_into()?,
+            WalletVersion::W5 => WalletDataW5 {
+                is_signature_allowed: true,
                 seqno: 0,
                 wallet_id,
                 public_key,

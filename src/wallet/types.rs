@@ -104,6 +104,49 @@ impl TryFrom<WalletDataV4> for Cell {
     }
 }
 
+/// WalletVersion::W5
+pub struct WalletDataW5 {
+    pub is_signature_allowed: bool,
+    pub seqno: u32,
+    pub wallet_id: i32,
+    pub public_key: [u8; 32],
+}
+
+impl TryFrom<Cell> for WalletDataW5 {
+    type Error = TonCellError;
+
+    fn try_from(value: Cell) -> Result<Self, Self::Error> {
+        let mut parser = value.parser();
+        let is_signature_allowed = parser.load_bit()?;
+        let seqno = parser.load_u32(32)?;
+        let wallet_id = parser.load_i32(32)?;
+        let mut public_key = [0u8; 32];
+        parser.load_slice(&mut public_key)?;
+        // TODO: handle extension dict
+        Ok(Self {
+            is_signature_allowed,
+            seqno,
+            wallet_id,
+            public_key,
+        })
+    }
+}
+
+impl TryFrom<WalletDataW5> for Cell {
+    type Error = TonCellError;
+
+    fn try_from(value: WalletDataW5) -> Result<Self, Self::Error> {
+        CellBuilder::new()
+            .store_bit(value.is_signature_allowed)?
+            .store_u32(32, value.seqno)?
+            .store_i32(32, value.wallet_id)?
+            .store_slice(&value.public_key)?
+            // empty extensions dict
+            .store_bit(false)?
+            .build()
+    }
+}
+
 /// WalletVersion::HighloadV2R2
 pub struct WalletDataHighloadV2R2 {
     pub wallet_id: i32,
