@@ -9,6 +9,7 @@ use crate::message::{TonMessageError, ZERO_COINS};
 pub struct TransferMessage {
     pub dest: TonAddress,
     pub value: BigUint,
+    pub bounce: bool,
     pub state_init: Option<ArcCell>,
     pub data: Option<ArcCell>,
 }
@@ -18,6 +19,7 @@ impl TransferMessage {
         TransferMessage {
             dest: dest.clone(),
             value: value.clone(),
+            bounce: true,
             state_init: None,
             data: None,
         }
@@ -41,11 +43,16 @@ impl TransferMessage {
         self
     }
 
+    pub fn with_bounce_flag(&mut self, bounce: bool) -> &mut Self {
+        self.bounce = bounce;
+        self
+    }
+
     pub fn build(&self) -> Result<Cell, TonMessageError> {
         let mut builder = CellBuilder::new();
         builder.store_bit(false)?; // bit0
         builder.store_bit(true)?; // ihr_disabled
-        builder.store_bit(true)?; // bounce
+        builder.store_bit(self.bounce)?; // bounce
         builder.store_bit(false)?; // bounced
         builder.store_address(&TonAddress::NULL)?; // src_addr
         builder.store_address(&self.dest)?; // dest_addr
